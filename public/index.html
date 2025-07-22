@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deno しりとりゲーム</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <h1>しりとり</h1>
+    <p>現在の単語: <span id="current-word"></span></p>
+    <input type="text" id="input-word" placeholder="次の単語を入力">
+    <button id="submit-word">送信</button>
+    <p id="message"></p>
+
+    <script>
+        // HTML要素の参照を取得
+        const currentWordSpan = document.getElementById("current-word");
+        const inputWord = document.getElementById("input-word");
+        const submitButton = document.getElementById("submit-word");
+        const messageParagraph = document.getElementById("message");
+
+        // サーバーから現在の単語を取得して表示する関数
+        async function fetchCurrentWord() {
+            try {
+                const response = await fetch("/shiritori", { method: "GET" });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const word = await response.text();
+                currentWordSpan.textContent = word;
+                messageParagraph.textContent = ""; // メッセージをクリア
+            } catch (error) {
+                console.error("現在の単語の取得に失敗しました:", error);
+                messageParagraph.textContent = "エラー: 現在の単語を取得できませんでした。";
+                messageParagraph.style.color = "red";
+            }
+        }
+
+        // 単語をサーバーに送信する関数
+        async function postNextWord() {
+            const nextWord = inputWord.value; // 入力された単語を取得
+
+            // 入力チェック（空文字でないこと）
+            if (!nextWord) {
+                messageParagraph.textContent = "単語を入力してください。";
+                messageParagraph.style.color = "orange";
+                return; // ここで処理を中断
+            }
+
+            try {
+                const response = await fetch("/shiritori", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ nextWord: nextWord })
+                });
+
+                if (response.ok) { // 成功した場合 (ステータスコード200番台)
+                    const updatedWord = await response.text();
+                    currentWordSpan.textContent = updatedWord; // 単語を更新
+                    inputWord.value = ""; // 入力欄をクリア
+                    messageParagraph.textContent = "成功！";
+                    messageParagraph.style.color = "green";
+                } else { // 失敗した場合 (ステータスコード400番台など)
+                    const errorMessage = await response.text();
+                    messageParagraph.textContent = `ルール違反: ${errorMessage}`;
+                    messageParagraph.style.color = "red";
+                }
+            } catch (error) {
+                console.error("単語の送信中にエラーが発生しました:", error);
+                messageParagraph.textContent = "エラー: 単語を送信できませんでした。";
+                messageParagraph.style.color = "red";
+            }
+        }
+
+        // ページ読み込み時に現在の単語を取得
+        window.onload = () => {
+            fetchCurrentWord();
+
+            // 送信ボタンクリック時のイベントリスナー
+            submitButton.addEventListener("click", postNextWord);
+
+            // エンターキーが押された時も送信する
+            inputWord.addEventListener("keypress", (event) => {
+                if (event.key === "Enter") {
+                    postNextWord();
+                }
+            });
+        };
+    </script>
+</body>
+</html>
