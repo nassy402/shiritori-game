@@ -1,4 +1,3 @@
-
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/server.js" }
@@ -6,7 +5,8 @@
   "functions": {
     "server.js": {
       "runtime": "edge", 
-      "entrypoint": "server.js"
+      "entrypoint": "server.js",
+      "regions": ["hnd1"] 
     }
   }
 }
