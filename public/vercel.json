@@ -4,9 +4,29 @@
   ],
   "functions": {
     "server.js": {
-      "runtime": "edge", 
+      "runtime": "edge",
       "entrypoint": "server.js",
-      "regions": ["hnd1"] 
+      "regions": ["hnd1"]
     }
-  }
+  },
+  "error-outputs": { 
+    "400": "/server.js"
+  },
+  "routes": [ 
+    {
+      "src": "/(.*)",
+      "dest": "/server.js",
+      "status": 200 
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js",
+      "status": 400
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js",
+      "status": 500 
+    }
+  ]
 }
